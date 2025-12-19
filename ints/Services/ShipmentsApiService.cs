@@ -19,7 +19,7 @@ namespace ints.Services
 
         public async Task<List<Shipment>> GetAllAsync()
         {
-            // Тут у тебя контроллер ShipmentsController => "api/shipments"
+
             var list = await _api.Http.GetFromJsonAsync<List<Shipment>>("api/shipments");
             return list ?? new List<Shipment>();
         }

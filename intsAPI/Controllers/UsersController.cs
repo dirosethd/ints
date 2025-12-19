@@ -15,11 +15,11 @@ namespace intsAPI.Controllers
             _db = db;
         }
 
-        // GET: api/users
+       
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            // парольные поля не отдаём
+           
             var users = await _db.Users
                 .AsNoTracking()
                 .Select(u => new { u.Id, u.Username, u.CreatedAtUtc })

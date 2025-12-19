@@ -24,7 +24,7 @@ namespace ints.Services
             await db.Database.EnsureCreatedAsync();
         }
 
-        // ---------------- Cars ----------------
+
         public async Task<List<Car>> GetCarsAsync()
         {
             await using var db = await _factory.CreateDbContextAsync();
@@ -58,7 +58,7 @@ namespace ints.Services
         {
             await using var db = await _factory.CreateDbContextAsync();
 
-            // если есть водители/перевозки — запретим удаление, иначе FK упадёт
+
             var hasDrivers = await db.Drivers.AnyAsync(d => d.CarId == id);
             if (hasDrivers)
                 throw new InvalidOperationException("Нельзя удалить автомобиль: к нему привязаны водители.");
@@ -99,8 +99,7 @@ namespace ints.Services
         {
             await using var db = await _factory.CreateDbContextAsync();
 
-            // условие задачи: водитель закреплён только за одним авто — это и есть CarId
-            // Проверим, что машина существует
+
             var carExists = await db.Cars.AnyAsync(c => c.Id == driver.CarId);
             if (!carExists)
                 throw new InvalidOperationException("Указанный автомобиль не существует.");
@@ -136,7 +135,6 @@ namespace ints.Services
             await db.SaveChangesAsync();
         }
 
-        // ---------------- Fuel types ----------------
         public async Task<List<FuelType>> GetFuelTypesAsync()
         {
             await using var db = await _factory.CreateDbContextAsync();
@@ -175,7 +173,6 @@ namespace ints.Services
             await db.SaveChangesAsync();
         }
 
-        // ---------------- Shipments ----------------
         public async Task<List<Shipment>> GetShipmentsAsync()
         {
             await using var db = await _factory.CreateDbContextAsync();
@@ -193,7 +190,6 @@ namespace ints.Services
         {
             await using var db = await _factory.CreateDbContextAsync();
 
-            // Проверка условия: водитель должен быть закреплён за выбранным авто
             var driverCarId = await db.Drivers
                 .Where(d => d.Id == shipment.DriverId)
                 .Select(d => (int?)d.CarId)
@@ -205,7 +201,6 @@ namespace ints.Services
             if (driverCarId.Value != shipment.CarId)
                 throw new InvalidOperationException("Водитель закреплён за другим автомобилем.");
 
-            // Проверим, что топливо существует
             var fuelExists = await db.FuelTypes.AnyAsync(f => f.Id == shipment.FuelTypeId);
             if (!fuelExists)
                 throw new InvalidOperationException("Марка топлива не найдена.");

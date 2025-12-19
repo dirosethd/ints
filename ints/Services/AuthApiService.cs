@@ -21,7 +21,7 @@ namespace ints.Services
         {
             var req = new LoginRequest { Username = username, Password = password };
 
-            // ВАЖНО: у тебя endpoint в API называется "/login" (без api/auth)
+            
             var resp = await _api.Http.PostAsJsonAsync("login", req);
             if (!resp.IsSuccessStatusCode)
                 return null;
@@ -38,7 +38,7 @@ namespace ints.Services
         {
             var req = new RegisterRequest { Username = username, Password = password };
 
-            // ВАЖНО: endpoint "/register"
+   
             var resp = await _api.Http.PostAsJsonAsync("register", req);
             return resp.IsSuccessStatusCode;
         }

@@ -14,7 +14,7 @@ namespace ints.Services
 
         void NavigateTo(BaseViewModel vm);
 
-        void NavigateTo<T>() where T : BaseViewModel;   // <-- ДОБАВИТЬ
+        void NavigateTo<T>() where T : BaseViewModel; 
 
         event Action? CurrentChanged;
     }

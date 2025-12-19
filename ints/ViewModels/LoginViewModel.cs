@@ -48,7 +48,7 @@ namespace ints.ViewModels
         private void OpenRegister()
         {
             var reg = App.Services.GetRequiredService<ints.Views.RegisterWindow>();
-            reg.Owner = Application.Current.MainWindow; // можно убрать
+            reg.Owner = Application.Current.MainWindow;
             reg.ShowDialog();
         }
 
@@ -56,7 +56,7 @@ namespace ints.ViewModels
         {
             Error = "";
 
-            // ✅ Вход через API: получаем JWT токен
+    
             var token = await _authApi.LoginAsync(Username, Password);
 
             if (string.IsNullOrWhiteSpace(token))
@@ -65,7 +65,7 @@ namespace ints.ViewModels
                 return;
             }
 
-            // ✅ Закрыть LoginWindow и разрешить App.xaml.cs открыть MainWindow
+w
             foreach (Window w in Application.Current.Windows)
             {
                 if (w is ints.Views.LoginWindow)

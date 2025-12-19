@@ -27,7 +27,7 @@ namespace ints.ViewModels
 
                 ExitCommand = new RelayCommand(() => App.Current.Shutdown());
 
-                // стартовый экран
+           
                 _nav.NavigateTo<CarsViewModel>();
             }
 

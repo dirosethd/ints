@@ -95,7 +95,6 @@ namespace ints.Services
         {
             await using var db = await _factory.CreateDbContextAsync();
 
-            // Валидация: водитель должен быть закреплен за выбранным авто
             var driverCarId = await db.Drivers.Where(d => d.Id == shipment.DriverId)
                 .Select(d => d.CarId)
                 .SingleAsync();

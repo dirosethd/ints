@@ -204,10 +204,10 @@ namespace ints.ViewModels
 
                 await _db.AddShipmentAsync(new Shipment
                 {
-                    Date = DateOnly.FromDateTime(NewDate),   // было Date = NewDate
-                    FromLocation = NewFrom.Trim(),           // было From =
-                    ToLocation = NewTo.Trim(),               // было To =
-                    DistanceKm = NewDistanceKm,              // теперь decimal
+                    Date = DateOnly.FromDateTime(NewDate),  
+                    FromLocation = NewFrom.Trim(),           
+                    ToLocation = NewTo.Trim(),               
+                    DistanceKm = NewDistanceKm,             
                     VolumeLiters = NewVolumeLiters,
                     CarId = SelectedCar.Id,
                     DriverId = SelectedDriver.Id,
