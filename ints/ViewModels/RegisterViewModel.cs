@@ -21,7 +21,7 @@ namespace ints.ViewModels
             BackToLoginCommand = new RelayCommand(CloseRegisterWindow);
         }
 
-        // ================== PROPERTIES ==================
+
 
         private string _username = "";
         public string Username
@@ -51,12 +51,9 @@ namespace ints.ViewModels
             set => Set(ref _error, value);
         }
 
-        // ================== COMMANDS ==================
-
         public RelayCommand RegisterCommand { get; }
         public RelayCommand BackToLoginCommand { get; }
 
-        // ================== LOGIC ==================
 
         private bool CanRegister()
             => !string.IsNullOrWhiteSpace(Username)
@@ -71,7 +68,6 @@ namespace ints.ViewModels
 
                 await _auth.RegisterAsync(Username, Password);
 
-                // успешная регистрация → закрываем окно
                 CloseRegisterWindow();
             }
             catch (Exception ex)

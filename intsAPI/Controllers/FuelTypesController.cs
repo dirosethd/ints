@@ -15,7 +15,7 @@ namespace intsAPI.Controllers
             _db = db;
         }
 
-        // GET: api/fueltypes
+       
         [HttpGet]
         public async Task<ActionResult<List<FuelType>>> GetAll()
         {
@@ -27,7 +27,7 @@ namespace intsAPI.Controllers
             return Ok(list);
         }
 
-        // GET: api/fueltypes/5
+        
         [HttpGet("{id:int}")]
         public async Task<ActionResult<FuelType>> GetById(int id)
         {
@@ -38,7 +38,7 @@ namespace intsAPI.Controllers
             return item == null ? NotFound() : Ok(item);
         }
 
-        // POST: api/fueltypes
+       
         [HttpPost]
         public async Task<ActionResult<FuelType>> Create([FromBody] FuelType fuelType)
         {
@@ -48,7 +48,7 @@ namespace intsAPI.Controllers
             return CreatedAtAction(nameof(GetById), new { id = fuelType.Id }, fuelType);
         }
 
-        // PUT: api/fueltypes/5
+        
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] FuelType fuelType)
         {
@@ -64,7 +64,7 @@ namespace intsAPI.Controllers
             return NoContent();
         }
 
-        // DELETE: api/fueltypes/5
+   
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

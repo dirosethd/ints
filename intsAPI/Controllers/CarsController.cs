@@ -15,7 +15,7 @@ namespace intsAPI.Controllers
             _db = db;
         }
 
-        // GET: api/cars
+        
         [HttpGet]
         public async Task<ActionResult<List<Car>>> GetAll()
         {
@@ -27,7 +27,7 @@ namespace intsAPI.Controllers
             return Ok(list);
         }
 
-        // GET: api/cars/5
+        
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Car>> GetById(int id)
         {
@@ -38,7 +38,7 @@ namespace intsAPI.Controllers
             return car == null ? NotFound() : Ok(car);
         }
 
-        // POST: api/cars
+
         [HttpPost]
         public async Task<ActionResult<Car>> Create([FromBody] Car car)
         {
@@ -48,7 +48,7 @@ namespace intsAPI.Controllers
             return CreatedAtAction(nameof(GetById), new { id = car.Id }, car);
         }
 
-        // PUT: api/cars/5
+        
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] Car car)
         {
@@ -64,7 +64,7 @@ namespace intsAPI.Controllers
             return NoContent();
         }
 
-        // DELETE: api/cars/5
+     
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

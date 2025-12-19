@@ -15,7 +15,7 @@ namespace intsAPI.Controllers
             _db = db;
         }
 
-        // GET: api/drivers
+      
         [HttpGet]
         public async Task<ActionResult<List<Driver>>> GetAll()
         {
@@ -28,7 +28,7 @@ namespace intsAPI.Controllers
             return Ok(list);
         }
 
-        // GET: api/drivers/5
+      
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Driver>> GetById(int id)
         {
@@ -40,11 +40,11 @@ namespace intsAPI.Controllers
             return driver == null ? NotFound() : Ok(driver);
         }
 
-        // POST: api/drivers
+      
         [HttpPost]
         public async Task<ActionResult<Driver>> Create([FromBody] Driver driver)
         {
-            // Проверим, что машина существует
+           
             var carExists = await _db.Cars.AnyAsync(c => c.Id == driver.CarId);
             if (!carExists) return BadRequest("CarId не существует");
 
@@ -54,7 +54,7 @@ namespace intsAPI.Controllers
             return CreatedAtAction(nameof(GetById), new { id = driver.Id }, driver);
         }
 
-        // PUT: api/drivers/5
+       
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] Driver driver)
         {
@@ -73,7 +73,7 @@ namespace intsAPI.Controllers
             return NoContent();
         }
 
-        // DELETE: api/drivers/5
+       
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

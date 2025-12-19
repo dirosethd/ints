@@ -26,7 +26,7 @@ namespace ints
 
         private static void ConfigureServices(IServiceCollection services)
         {
-            // EF (лучше фабрика, чтобы не было проблем со временем жизни DbContext)
+        
             services.AddDbContextFactory<AppDbContext>(opt =>
                 opt.UseSqlServer("Data Source=DIROSE;Initial Catalog=ints;Persist Security Info=True;User ID=dirosethd;Password=1612;Encrypt=False"));
 

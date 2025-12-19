@@ -15,7 +15,7 @@ namespace intsAPI.Controllers
             _db = db;
         }
 
-        // GET: api/shipments
+       
         [HttpGet]
         public async Task<ActionResult<List<Shipment>>> GetAll()
         {
@@ -30,7 +30,7 @@ namespace intsAPI.Controllers
             return Ok(list);
         }
 
-        // GET: api/shipments/5
+       
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Shipment>> GetById(int id)
         {
@@ -44,11 +44,10 @@ namespace intsAPI.Controllers
             return shipment == null ? NotFound() : Ok(shipment);
         }
 
-        // POST: api/shipments
         [HttpPost]
         public async Task<ActionResult<Shipment>> Create([FromBody] Shipment shipment)
         {
-            // FK проверки
+            
             if (!await _db.Cars.AnyAsync(x => x.Id == shipment.CarId))
                 return BadRequest("CarId не существует");
 
@@ -64,7 +63,7 @@ namespace intsAPI.Controllers
             return CreatedAtAction(nameof(GetById), new { id = shipment.Id }, shipment);
         }
 
-        // PUT: api/shipments/5
+        
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] Shipment shipment)
         {
@@ -89,7 +88,7 @@ namespace intsAPI.Controllers
             return NoContent();
         }
 
-        // DELETE: api/shipments/5
+       
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
