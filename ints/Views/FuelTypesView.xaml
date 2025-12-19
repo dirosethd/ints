@@ -1,0 +1,43 @@
+﻿<UserControl x:Class="ints.Views.FuelTypesView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ints.Views"
+        mc:Ignorable="d"
+         Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <GroupBox Header="Добавить марку топлива" Margin="0,0,0,10">
+            <WrapPanel Margin="8">
+                <TextBlock Text="Название:" VerticalAlignment="Center"/>
+                <TextBox Width="200" Margin="8,0"
+                         Text="{Binding NewName, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <TextBlock Text="Цена за литр:" VerticalAlignment="Center"/>
+                <TextBox Width="120" Margin="8,0"
+                         Text="{Binding NewPricePerLiter, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <Button Content="Добавить" Command="{Binding AddCommand}" Margin="12,0,0,0"/>
+                <Button Content="Обновить" Command="{Binding RefreshCommand}"/>
+                <Button Content="Удалить выбранное" Command="{Binding DeleteSelectedCommand}"/>
+            </WrapPanel>
+        </GroupBox>
+
+        <DataGrid Grid.Row="1"
+                  ItemsSource="{Binding FuelTypes}"
+                  SelectedItem="{Binding SelectedFuelType}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
+                <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="*"/>
+                <DataGridTextColumn Header="Цена/л" Binding="{Binding PricePerLiter}" Width="120"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>
