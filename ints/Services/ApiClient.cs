@@ -16,7 +16,7 @@ namespace ints.Services
         {
             _http = new HttpClient();
 
-            // ВАЖНО: укажи адрес твоего API (смотри в launchSettings.json)
+            
             _http.BaseAddress = new Uri("https://localhost:7204/");
         }
 

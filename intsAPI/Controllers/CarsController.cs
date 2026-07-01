@@ -1,4 +1,7 @@
 ﻿using ints.Models;
+using intsAPI.DTOs;
+using intsAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,75 +9,49 @@ namespace intsAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class CarsController : ControllerBase
     {
-        private readonly IntsContext _db;
+        private readonly ICarService _carService;
 
-        public CarsController(IntsContext db)
+        public CarsController(ICarService carService)
         {
-            _db = db;
+            _carService = carService;
         }
 
-        
         [HttpGet]
-        public async Task<ActionResult<List<Car>>> GetAll()
+        public async Task<ActionResult<List<CarDto>>> GetAll()
         {
-            var list = await _db.Cars
-                .AsNoTracking()
-                .OrderByDescending(x => x.Id)
-                .ToListAsync();
-
-            return Ok(list);
+            var cars = await _carService.GetAllAsync();
+            return Ok(cars);
         }
 
-        
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<Car>> GetById(int id)
+        public async Task<ActionResult<CarDto>> GetById(int id)
         {
-            var car = await _db.Cars
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == id);
-
+            var car = await _carService.GetByIdAsync(id);
             return car == null ? NotFound() : Ok(car);
         }
 
-
         [HttpPost]
-        public async Task<ActionResult<Car>> Create([FromBody] Car car)
+        public async Task<ActionResult<CarDto>> Create([FromBody] CreateCarRequest request)
         {
-            _db.Cars.Add(car);
-            await _db.SaveChangesAsync();
-
+            var car = await _carService.CreateAsync(request);
             return CreatedAtAction(nameof(GetById), new { id = car.Id }, car);
         }
 
-        
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Car car)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateCarRequest request)
         {
-            if (id != car.Id)
-                return BadRequest("id и car.Id должны совпадать");
-
-            var exists = await _db.Cars.AnyAsync(x => x.Id == id);
-            if (!exists) return NotFound();
-
-            _db.Entry(car).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            return NoContent();
+            var updated = await _carService.UpdateAsync(id, request);
+            return updated ? NoContent() : NotFound();
         }
 
-     
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var car = await _db.Cars.FirstOrDefaultAsync(x => x.Id == id);
-            if (car == null) return NotFound();
-
-            _db.Cars.Remove(car);
-            await _db.SaveChangesAsync();
-
-            return NoContent();
+            var deleted = await _carService.DeleteAsync(id);
+            return deleted ? NoContent() : NotFound();
         }
     }
 }

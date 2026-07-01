@@ -65,7 +65,7 @@ namespace ints.ViewModels
                 return;
             }
 
-w
+
             foreach (Window w in Application.Current.Windows)
             {
                 if (w is ints.Views.LoginWindow)
