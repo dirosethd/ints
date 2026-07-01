@@ -1,4 +1,7 @@
 ﻿using ints.Models;
+using intsAPI.DTOs;
+using intsAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,99 +9,63 @@ namespace intsAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class ShipmentsController : ControllerBase
     {
-        private readonly IntsContext _db;
+        private readonly IShipmentService _shipmentService;
 
-        public ShipmentsController(IntsContext db)
+        public ShipmentsController(IShipmentService shipmentService)
         {
-            _db = db;
+            _shipmentService = shipmentService;
         }
 
-       
         [HttpGet]
-        public async Task<ActionResult<List<Shipment>>> GetAll()
+        public async Task<ActionResult<List<ShipmentDto>>> GetAll()
         {
-            var list = await _db.Shipments
-                .AsNoTracking()
-                .Include(s => s.Car)
-                .Include(s => s.Driver)
-                .Include(s => s.FuelType)
-                .OrderByDescending(x => x.Id)
-                .ToListAsync();
-
-            return Ok(list);
+            var shipments = await _shipmentService.GetAllAsync();
+            return Ok(shipments);
         }
 
-       
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<Shipment>> GetById(int id)
+        public async Task<ActionResult<ShipmentDto>> GetById(int id)
         {
-            var shipment = await _db.Shipments
-                .AsNoTracking()
-                .Include(s => s.Car)
-                .Include(s => s.Driver)
-                .Include(s => s.FuelType)
-                .FirstOrDefaultAsync(x => x.Id == id);
-
+            var shipment = await _shipmentService.GetByIdAsync(id);
             return shipment == null ? NotFound() : Ok(shipment);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Shipment>> Create([FromBody] Shipment shipment)
+        public async Task<ActionResult<ShipmentDto>> Create([FromBody] CreateShipmentRequest request)
         {
-            
-            if (!await _db.Cars.AnyAsync(x => x.Id == shipment.CarId))
-                return BadRequest("CarId не существует");
-
-            if (!await _db.Drivers.AnyAsync(x => x.Id == shipment.DriverId))
-                return BadRequest("DriverId не существует");
-
-            if (!await _db.FuelTypes.AnyAsync(x => x.Id == shipment.FuelTypeId))
-                return BadRequest("FuelTypeId не существует");
-
-            _db.Shipments.Add(shipment);
-            await _db.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetById), new { id = shipment.Id }, shipment);
+            try
+            {
+                var shipment = await _shipmentService.CreateAsync(request);
+                return CreatedAtAction(nameof(GetById), new { id = shipment.Id }, shipment);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Shipment shipment)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateShipmentRequest request)
         {
-            if (id != shipment.Id)
-                return BadRequest("id и shipment.Id должны совпадать");
-
-            var exists = await _db.Shipments.AnyAsync(x => x.Id == id);
-            if (!exists) return NotFound();
-
-            if (!await _db.Cars.AnyAsync(x => x.Id == shipment.CarId))
-                return BadRequest("CarId не существует");
-
-            if (!await _db.Drivers.AnyAsync(x => x.Id == shipment.DriverId))
-                return BadRequest("DriverId не существует");
-
-            if (!await _db.FuelTypes.AnyAsync(x => x.Id == shipment.FuelTypeId))
-                return BadRequest("FuelTypeId не существует");
-
-            _db.Entry(shipment).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            return NoContent();
+            try
+            {
+                var updated = await _shipmentService.UpdateAsync(id, request);
+                return updated ? NoContent() : NotFound();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-       
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var shipment = await _db.Shipments.FirstOrDefaultAsync(x => x.Id == id);
-            if (shipment == null) return NotFound();
-
-            _db.Shipments.Remove(shipment);
-            await _db.SaveChangesAsync();
-
-            return NoContent();
+            var deleted = await _shipmentService.DeleteAsync(id);
+            return deleted ? NoContent() : NotFound();
         }
     }
 }

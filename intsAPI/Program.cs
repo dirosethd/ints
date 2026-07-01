@@ -1,8 +1,9 @@
 using ints;
 using ints.Models;
-
+using intsAPI.Mappings;
 using intsAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -13,9 +14,11 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
+// Swagger
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "intsAPI", Version = "v1" });
@@ -23,7 +26,7 @@ builder.Services.AddSwaggerGen(options =>
     options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
-        Description = "Введите JWT токен. Пример: Bearer {token}",
+        Description = "Enter JWT token. Example: Bearer {token}",
         Name = "Authorization",
         Type = SecuritySchemeType.Http,
         BearerFormat = "JWT",
@@ -46,25 +49,33 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// DbContext
+// Database
 string cs = builder.Configuration.GetConnectionString("DefaultConnection")!;
 builder.Services.AddDbContext<IntsContext>(opt => opt.UseSqlServer(cs));
 
-// JWT Auth
+// Services registration
+builder.Services.AddScoped<ICarService, CarService>();
+builder.Services.AddScoped<IDriverService, DriverService>();
+builder.Services.AddScoped<IFuelTypeService, FuelTypeService>();
+builder.Services.AddScoped<IShipmentService, ShipmentService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+// AutoMapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+// JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = AuthOptions.ISSUER,
-
+            ValidIssuer = "MyAuthServer",
             ValidateAudience = true,
-            ValidAudience = AuthOptions.AUDIENCE,
-
+            ValidAudience = "MyAuthClient",
             ValidateLifetime = true,
-
-            IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(builder.Configuration),
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured"))),
             ValidateIssuerSigningKey = true
         };
     });
@@ -73,9 +84,7 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-app.UseAuthentication();
-app.UseAuthorization();
-
+// Configure pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -83,99 +92,39 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
-
-// ================== LOGIN ==================
-app.MapPost("/login", async (LoginRequest req, IntsContext db) =>
+// Auth endpoints
+app.MapPost("/login", async (LoginRequest req, IAuthService authService) =>
 {
-    var user = await db.Users.FirstOrDefaultAsync(u => u.Username == req.Username);
-    if (user == null)
-        return Results.Unauthorized();
-
-    if (!PasswordHelper.VerifyPassword(
-            req.Password,
-            user.PasswordHash,
-            user.PasswordSalt))
+    try
+    {
+        var result = await authService.LoginAsync(req);
+        return Results.Ok(result);
+    }
+    catch (UnauthorizedAccessException)
     {
         return Results.Unauthorized();
     }
-
-    var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.Name, user.Username),
-        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-    };
-
-    var jwt = new JwtSecurityToken(
-        issuer: AuthOptions.ISSUER,
-        audience: AuthOptions.AUDIENCE,
-        claims: claims,
-        expires: DateTime.UtcNow.AddMinutes(30),
-        signingCredentials: new SigningCredentials(
-            AuthOptions.GetSymmetricSecurityKey(builder.Configuration),
-            SecurityAlgorithms.HmacSha256));
-
-    var token = new JwtSecurityTokenHandler().WriteToken(jwt);
-
-    return Results.Json(new
-    {
-        access_token = token,
-        username = user.Username
-    });
 });
 
-
-// ================== REGISTER ==================
-app.MapPost("/register", async (RegisterRequest req, IntsContext db) =>
+app.MapPost("/register", async (RegisterRequest req, IAuthService authService) =>
 {
-    if (string.IsNullOrWhiteSpace(req.Username) ||
-        string.IsNullOrWhiteSpace(req.Password))
+    try
     {
-        return Results.BadRequest("Username и Password обязательны");
+        var result = await authService.RegisterAsync(req);
+        return Results.Ok(result);
     }
-
-    bool exists = await db.Users.AnyAsync(u => u.Username == req.Username);
-    if (exists)
-        return Results.BadRequest("Пользователь уже существует");
-
-    var result = PasswordHelper.HashPassword(req.Password);
-
-    var user = new User
+    catch (ArgumentException ex)
     {
-        Username = req.Username,
-        PasswordHash = result.hash,
-        PasswordSalt = result.salt
-    };
-
-    db.Users.Add(user);
-    await db.SaveChangesAsync();
-
-    return Results.Ok(new
+        return Results.BadRequest(ex.Message);
+    }
+    catch (InvalidOperationException ex)
     {
-        user.Id,
-        user.Username
-    });
+        return Results.BadRequest(ex.Message);
+    }
 });
 
 app.MapControllers();
 app.Run();
-
-
-// ================== DTO ==================
-public record LoginRequest(string Username, string Password);
-public record RegisterRequest(string Username, string Password);
-
-
-// ================== JWT OPTIONS ==================
-public static class AuthOptions
-{
-    public const string ISSUER = "MyAuthServer";
-    public const string AUDIENCE = "MyAuthClient";
-
-    public static SymmetricSecurityKey GetSymmetricSecurityKey(IConfiguration config)
-    {
-        string key = config["Jwt:Key"] ?? throw new Exception("Jwt:Key отсутствует в appsettings.json");
-        return new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
-    }
-}
-

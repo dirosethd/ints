@@ -1,4 +1,6 @@
 ﻿using ints.Models;
+using intsAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,75 +8,49 @@ namespace intsAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class FuelTypesController : ControllerBase
     {
-        private readonly IntsContext _db;
+        private readonly IFuelTypeService _fuelTypeService;
 
-        public FuelTypesController(IntsContext db)
+        public FuelTypesController(IFuelTypeService fuelTypeService)
         {
-            _db = db;
+            _fuelTypeService = fuelTypeService;
         }
 
-       
         [HttpGet]
-        public async Task<ActionResult<List<FuelType>>> GetAll()
+        public async Task<ActionResult<List<FuelTypeDto>>> GetAll()
         {
-            var list = await _db.FuelTypes
-                .AsNoTracking()
-                .OrderByDescending(x => x.Id)
-                .ToListAsync();
-
-            return Ok(list);
+            var fuelTypes = await _fuelTypeService.GetAllAsync();
+            return Ok(fuelTypes);
         }
 
-        
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<FuelType>> GetById(int id)
+        public async Task<ActionResult<FuelTypeDto>> GetById(int id)
         {
-            var item = await _db.FuelTypes
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == id);
-
-            return item == null ? NotFound() : Ok(item);
+            var fuelType = await _fuelTypeService.GetByIdAsync(id);
+            return fuelType == null ? NotFound() : Ok(fuelType);
         }
 
-       
         [HttpPost]
-        public async Task<ActionResult<FuelType>> Create([FromBody] FuelType fuelType)
+        public async Task<ActionResult<FuelTypeDto>> Create([FromBody] CreateFuelTypeRequest request)
         {
-            _db.FuelTypes.Add(fuelType);
-            await _db.SaveChangesAsync();
-
+            var fuelType = await _fuelTypeService.CreateAsync(request);
             return CreatedAtAction(nameof(GetById), new { id = fuelType.Id }, fuelType);
         }
 
-        
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] FuelType fuelType)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateFuelTypeRequest request)
         {
-            if (id != fuelType.Id)
-                return BadRequest("id и fuelType.Id должны совпадать");
-
-            var exists = await _db.FuelTypes.AnyAsync(x => x.Id == id);
-            if (!exists) return NotFound();
-
-            _db.Entry(fuelType).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            return NoContent();
+            var updated = await _fuelTypeService.UpdateAsync(id, request);
+            return updated ? NoContent() : NotFound();
         }
 
-   
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var item = await _db.FuelTypes.FirstOrDefaultAsync(x => x.Id == id);
-            if (item == null) return NotFound();
-
-            _db.FuelTypes.Remove(item);
-            await _db.SaveChangesAsync();
-
-            return NoContent();
+            var deleted = await _fuelTypeService.DeleteAsync(id);
+            return deleted ? NoContent() : NotFound();
         }
     }
 }
